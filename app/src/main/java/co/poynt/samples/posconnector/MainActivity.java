@@ -2,10 +2,20 @@ package co.poynt.samples.posconnector;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.Formatter;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
 
 import co.poynt.samples.posconnector.R;
 
@@ -17,7 +27,34 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         Intent intent = new Intent(this, MyService.class);
         startService(intent);
+        displayIPAddress();
         finish();
+    }
+    private String displayIPAddress() {
+        String ipAddresses = "";
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress()) {
+                        String ip = inetAddress.getHostAddress();
+                        // skip IPv6 addresses
+                        if (!ip.contains("::")) {
+                            //Log.i("MainActivity", "***** IP=" + ip);
+                            ipAddresses += "IP: " + ip + "\n";
+                        }
+                        //return ip;
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            Log.e("MainActivity", ex.toString());
+        }
+        if (!"".equals(ipAddresses)){
+            Toast.makeText(MainActivity.this, ipAddresses, Toast.LENGTH_LONG).show();
+        }
+        return null;
     }
 //
 //    @Override
